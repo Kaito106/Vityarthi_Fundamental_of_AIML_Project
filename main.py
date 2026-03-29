@@ -1,289 +1,205 @@
 # ------------------------------------------------------------------------------------------------------Made by Pritam Ghosh (25BAI11306)------------------------------------------------------------------------------------------------------------------------
-
-import os
 import json
+import os
 from datetime import datetime
 
+DATA_FILE = "expenses.json"
 
-DATA_FILE="data.json"
+def load_expenses():
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, "r") as f:
+            return json.load(f)
+    return []
 
+def save_expenses(expenses):
+    with open(DATA_FILE, "w") as f:
+        json.dump(expenses, f, indent=2)
 
-def load_data():
-  if not os.path.exists(Data_file):
-    return {
-      "expenses": [], "budgets":{"overall": None, "categories":{}}
-    }
-
-try:
-  with open(Data_file, "r") as f:
-    data = json.load(f)
-
-
-
-except (json.JSONDecodeError, IOError):
-  data={
-    "expenses": [], "budgets": { "overall": None, "categories": {} }
-  }
-  return data
-
-
-def save_data(data):
+def validate_amount(amount_str):
     try:
-        with open(DATA_FILE, "w") as f:
-            json.dump(data, f, indent=4)
-    except IOError:
-        print("Error: Could not save data to file.")
+        amount = float(amount_str)
+        if amount <= 0:
+            raise ValueError
+        return amount
+    except ValueError:
+        return None
 
+def validate_date(date_str):
+    try:
+        datetime.strptime(date_str, "%d-%m-%Y")
+        return date_str
+    except ValueError:
+        return None
 
+def validate_month(month_str):
+    try:
+        datetime.strptime(month_str, "%m-%Y")
+        return month_str
+    except ValueError:
+        return None
 
-def input_date(prompt):
+def month_matches(expense_date, month_str):
+    # expense_date is DD-MM-YYYY, month_str is MM-YYYY
+    parts = expense_date.split("-")
+    return parts[1] == month_str[:2] and parts[2] == month_str[3:]
+
+CATEGORIES = ["Food", "Travel", "Entertainment", "Health", "Shopping", "Education", "Other"]
+
+def add_expense(expenses):
+    print("\n--- Add Expense ---")
+
     while True:
-        date_str = input(prompt).strip()
-        try:
-            datetime.strptime(date_str, "%Y-%m-%d")
-            return date_str
-        except ValueError:
-            print("Invalid date format. Please use YYYY-MM-DD.")
+        amount_str = input("Enter amount: ").strip()
+        amount = validate_amount(amount_str)
+        if amount is not None:
+            break
+        print("Invalid amount. Please enter a positive number.")
 
-
-
-def input_float(prompt):
+    print("Categories:")
+    for i, cat in enumerate(CATEGORIES, 1):
+        print(f"  {i}. {cat}")
     while True:
-        value_str = input(prompt).strip()
-        try:
-            value = float(value_str)
-            if value <= 0:
-                print("Amount must be positive.")
-                continue
-            return value
-        except ValueError:
-            print("Invalid number. Please enter a valid amount.")
+        cat_input = input("Choose category (1-7) or type custom: ").strip()
+        if cat_input.isdigit() and 1 <= int(cat_input) <= len(CATEGORIES):
+            category = CATEGORIES[int(cat_input) - 1]
+            break
+        elif cat_input:
+            category = cat_input.title()
+            break
+        print("Invalid category. Please try again.")
 
+    while True:
+        date_str = input("Enter date (DD-MM-YYYY) or press Enter for today: ").strip()
+        if not date_str:
+            date_str = datetime.today().strftime("%d-%m-%Y")
+        date = validate_date(date_str)
+        if date is not None:
+            break
+        print("Invalid date format. Use DD-MM-YYYY.")
 
-
-def show_menu():
-    print("\n===== PERSONAL EXPENSE TRACKER =====")
-    print("1. Add Expense")
-    print("2. View Expenses")
-    print("3. Set Budget")
-    print("4. View Budget")
-    print("5. Monthly Summary & Budget Alerts")
-    print("6. Exit")
-
-    choice = input("Enter your choice (1-6): ").strip()
-    return choice
-  
-
-
-def monthly_summary(data):
-    expenses = data.get("expenses", [])
-    if not expenses:
-        print("\nNo expenses recorded yet.")
-        return
-
-    month = input("\nEnter month in format YYYY-MM (e.g., 2025-11): ").strip()
-    if len(month) != 7 or month[4] != "-":
-        print("Invalid month format.")
-        return
-
-    total_for_month = 0.0
-    category_totals = {}
-
-    for e in expenses:
-        if e["date"].startswith(month):
-            amt = e["amount"]
-            total_for_month += amt
-            cat = e["category"]
-            category_totals[cat] = category_totals.get(cat, 0.0) + amt
-
-    if total_for_month == 0:
-        print(f"No expenses found for {month}.")
-        return
-
-    print(f"\n--- Summary for {month} ---")
-    print(f"Total spending: {total_for_month:.2f}")
-    print("Spending by category:")
-    for cat, amt in category_totals.items():
-        print(f"  {cat}: {amt:.2f}")
-
-  
-    budgets = data.get("budgets", {"overall": None, "categories": {}})
-    overall_budget = budgets.get("overall")
-    category_budgets = budgets.get("categories", {})
-
-    print("\n--- Budget Status ---")
-    if overall_budget is not None:
-        if total_for_month > overall_budget:
-            print(f"WARNING: Overall spending exceeded budget ({total_for_month:.2f} > {overall_budget:.2f})")
-        else:
-            remaining = overall_budget - total_for_month
-            print(f"Overall spending is within budget. Remaining: {remaining:.2f}")
-    else:
-        print("Overall budget not set.")
-
-    for cat, amt in category_totals.items():
-        if cat in category_budgets:
-            cat_budget = category_budgets[cat]
-            if amt > cat_budget:
-                print(f"WARNING: '{cat}' category exceeded budget ({amt:.2f} > {cat_budget:.2f})")
-            else:
-                remaining = cat_budget - amt
-                print(f"'{cat}' category within budget. Remaining: {remaining:.2f}")
-        else:
-            print(f"No budget set for category '{cat}'.")
-
-
-
-def view_expenses(data):
-    expenses = data.get("expenses", [])
-    if not expenses:
-        print("\nNo expenses recorded yet.")
-        return
-
-    print("\n--- View Expenses ---")
-    print("1. View all expenses")
-    print("2. Filter by category")
-    print("3. Filter by date range")
-    choice = input("Enter your choice (1-3): ").strip()
-
-    filtered = expenses
-
-    if choice == "2":
-        category = input("Enter category to filter by: ").strip()
-        filtered = [e for e in expenses if e["category"].lower() == category.lower()]
-
-    elif choice == "3":
-        start_date = input_date("Enter start date (YYYY-MM-DD): ")
-        end_date = input_date("Enter end date (YYYY-MM-DD): ")
-        start = datetime.strptime(start_date, "%Y-%m-%d")
-        end = datetime.strptime(end_date, "%Y-%m-%d")
-        if end < start:
-            print("End date cannot be earlier than start date.")
-            return
-        filtered = []
-        for e in expenses:
-            d = datetime.strptime(e["date"], "%Y-%m-%d")
-            if start <= d <= end:
-                filtered.append(e)
-
-    if not filtered:
-        print("No expenses found for the selected filter.")
-        return
-
-    print("\nID |Date    |Category  |Amount    |Description")
-    print("-" * 60)
-    for e in filtered:
-        print(f"{e['id']:2d} | {e['date']} | {e['category']:<10} | {e['amount']:8.2f} | {e['description']}")
-    print("-" * 60)
-    total = sum(e["amount"] for e in filtered)
-    print(f"Total for these expenses: {total:.2f}")
-
-
-
-def add_exp(data):
-    print("\n--- Add New Expense ---")
-    date = input_date("Enter date (YYYY-MM-DD): ")
-    category = input("Enter category (e.g., Food, Travel, Shopping): ").strip()
-    description = input("Enter description: ").strip()
-    amount = input_float("Enter amount: ")
-
-    expenses = data.get("expenses", [])
-
-    if expenses:
-        new_id = max(expense.get("id", 0) for expense in expenses) + 1
-    else:
-        new_id = 1
+    description = input("Enter description (optional): ").strip()
 
     expense = {
-        "id": new_id,
-        "date": date,
+        "amount": amount,
         "category": category,
-        "description": description,
-        "amount": amount
+        "date": date_str,
+        "description": description
     }
-
     expenses.append(expense)
-    data["expenses"] = expenses
-    save_data(data)
-    print("Expense added successfully!")
+    save_expenses(expenses)
+    print(f"\nExpense added: {category} - ₹{amount:.2f} on {date_str}")
 
-
-
-def set_budget(data):
-    print("\n--- Set Budget ---")
-    print("1. Set overall monthly budget")
-    print("2. Set category-wise monthly budget")
-    choice = input("Enter your choice (1-2): ").strip()
-
-    budgets = data.get("budgets", {"overall": None, "categories": {}})
-
-    if choice == "1":
-        amount = input_float("Enter overall monthly budget amount: ")
-        budgets["overall"] = amount
-        print(f"Overall monthly budget set to {amount:.2f}")
-
-    elif choice == "2":
-        category = input("Enter category name: ").strip()
-        amount = input_float(f"Enter monthly budget for category '{category}': ")
-        budgets.setdefault("categories", {})
-        budgets["categories"][category] = amount
-        print(f"Budget for category '{category}' set to {amount:.2f}")
-
-    else:
-        print("Invalid choice. Returning to main menu.")
+def view_expenses(expenses):
+    print("\n--- All Expenses ---")
+    if not expenses:
+        print("No expenses recorded yet.")
         return
 
-    data["budgets"] = budgets
-    save_data(data)
+    print(f"{'#':<4} {'Date':<12} {'Category':<15} {'Amount':>10} {'Description'}")
+    print("-" * 60)
+    for i, exp in enumerate(expenses, 1):
+        desc = exp.get("description", "")[:20]
+        print(f"{i:<4} {exp['date']:<12} {exp['category']:<15} ₹{exp['amount']:>9.2f} {desc}")
+    print("-" * 60)
+    print(f"{'Total expenses:':<32} {len(expenses)} records")
 
+def total_spending(expenses):
+    print("\n--- Total Spending ---")
+    if not expenses:
+        print("No expenses recorded yet.")
+        return
+    total = sum(exp["amount"] for exp in expenses)
+    print(f"Total spending: ₹{total:.2f}")
+    print(f"Number of transactions: {len(expenses)}")
+    print(f"Average per transaction: ₹{total/len(expenses):.2f}")
 
+def category_summary(expenses):
+    print("\n--- Category-wise Summary ---")
+    if not expenses:
+        print("No expenses recorded yet.")
+        return
 
-def view_budgets(data):
-    budgets = data.get("budgets", {"overall": None, "categories": {}})
-    print("\n--- Current Budgets ---")
-    overall = budgets.get("overall")
-    if overall is None:
-        print("Overall budget: Not set")
-    else:
-        print(f"Overall budget: {overall:.2f}")
+    summary = {}
+    for exp in expenses:
+        cat = exp["category"]
+        summary[cat] = summary.get(cat, 0) + exp["amount"]
 
-    categories = budgets.get("categories", {})
-    if not categories:
-        print("No category-wise budgets set.")
-    else:
-        print("Category-wise budgets:")
-        for cat, amt in categories.items():
-            print(f"  {cat}: {amt:.2f}")
+    total = sum(summary.values())
+    print(f"{'Category':<20} {'Amount':>12} {'Percentage':>12}")
+    print("-" * 46)
+    for cat, amount in sorted(summary.items(), key=lambda x: x[1], reverse=True):
+        pct = (amount / total * 100) if total else 0
+        print(f"{cat:<20} ₹{amount:>10.2f} {pct:>11.1f}%")
+    print("-" * 46)
+    print(f"{'Total':<20} ₹{total:>10.2f} {'100.0%':>12}")
 
-
-
-def main():
-    data = load_data()
+def monthly_summary(expenses):
+    print("\n--- Monthly Summary ---")
+    if not expenses:
+        print("No expenses recorded yet.")
+        return
 
     while True:
-        choice = show_menu()
+        month_str = input("Enter month (MM-YYYY): ").strip()
+        if validate_month(month_str):
+            break
+        print("Invalid format. Use MM-YYYY.")
+
+    filtered = [exp for exp in expenses if month_matches(exp["date"], month_str)]
+    if not filtered:
+        print(f"No expenses found for {month_str}.")
+        return
+
+    total = sum(exp["amount"] for exp in filtered)
+    # Sort by day for chronological display
+    filtered_sorted = sorted(filtered, key=lambda x: x["date"].split("-")[0])
+
+    print(f"\nExpenses for {month_str}:")
+    print(f"{'Date':<12} {'Category':<15} {'Amount':>10} {'Description'}")
+    print("-" * 55)
+    for exp in filtered_sorted:
+        desc = exp.get("description", "")[:18]
+        print(f"{exp['date']:<12} {exp['category']:<15} ₹{exp['amount']:>9.2f} {desc}")
+    print("-" * 55)
+    print(f"Total for {month_str}: ₹{total:.2f} ({len(filtered)} transactions)")
+
+def print_menu():
+    print("\n" + "=" * 40)
+    print("       EXPENSE TRACKER")
+    print("=" * 40)
+    print("  1. Add Expense")
+    print("  2. View All Expenses")
+    print("  3. Total Spending")
+    print("  4. Category-wise Summary")
+    print("  5. Monthly Summary")
+    print("  6. Exit")
+    print("=" * 40)
+
+def main():
+    expenses = load_expenses()
+    print("Welcome to Expense Tracker!")
+    print(f"Loaded {len(expenses)} existing expense(s).")
+
+    while True:
+        print_menu()
+        choice = input("Enter your choice (1-6): ").strip()
 
         if choice == "1":
-            add_expense(data)
+            add_expense(expenses)
         elif choice == "2":
-            view_expenses(data)
+            view_expenses(expenses)
         elif choice == "3":
-            set_budget(data)
+            total_spending(expenses)
         elif choice == "4":
-            view_budgets(data)
+            category_summary(expenses)
         elif choice == "5":
-            monthly_summary(data)
+            monthly_summary(expenses)
         elif choice == "6":
-            print("Exiting... Goodbye!")
+            print("\nGoodbye! Your expenses have been saved.")
             break
         else:
             print("Invalid choice. Please enter a number between 1 and 6.")
 
-
-
 if __name__ == "__main__":
     main()
-
-
-
 # ------------------------------------------------------------------------------------------------------Made by Pritam Ghosh (25BAI11306)------------------------------------------------------------------------------------------------------------------------

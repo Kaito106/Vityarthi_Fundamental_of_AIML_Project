@@ -1,3 +1,5 @@
+# ------------------------------------------------------------------------------------------------------Made by Pritam Ghosh (25BAI11306)------------------------------------------------------------------------------------------------------------------------
+
 import os
 import json
 from datetime import datetime
@@ -67,130 +69,7 @@ def show_menu():
 
     choice = input("Enter your choice (1-6): ").strip()
     return choice
-
-
-
-def add_exp(data):
-    print("\n--- Add New Expense ---")
-    date = input_date("Enter date (YYYY-MM-DD): ")
-    category = input("Enter category (e.g., Food, Travel, Shopping): ").strip()
-    description = input("Enter description: ").strip()
-    amount = input_float("Enter amount: ")
-
-    expenses = data.get("expenses", [])
-
-    if expenses:
-        new_id = max(expense.get("id", 0) for expense in expenses) + 1
-    else:
-        new_id = 1
-
-    expense = {
-        "id": new_id,
-        "date": date,
-        "category": category,
-        "description": description,
-        "amount": amount
-    }
-
-    expenses.append(expense)
-    data["expenses"] = expenses
-    save_data(data)
-    print("Expense added successfully!")
-
-
-
-def view_expenses(data):
-    expenses = data.get("expenses", [])
-    if not expenses:
-        print("\nNo expenses recorded yet.")
-        return
-
-    print("\n--- View Expenses ---")
-    print("1. View all expenses")
-    print("2. Filter by category")
-    print("3. Filter by date range")
-    choice = input("Enter your choice (1-3): ").strip()
-
-    filtered = expenses
-
-    if choice == "2":
-        category = input("Enter category to filter by: ").strip()
-        filtered = [e for e in expenses if e["category"].lower() == category.lower()]
-
-    elif choice == "3":
-        start_date = input_date("Enter start date (YYYY-MM-DD): ")
-        end_date = input_date("Enter end date (YYYY-MM-DD): ")
-        start = datetime.strptime(start_date, "%Y-%m-%d")
-        end = datetime.strptime(end_date, "%Y-%m-%d")
-        if end < start:
-            print("End date cannot be earlier than start date.")
-            return
-        filtered = []
-        for e in expenses:
-            d = datetime.strptime(e["date"], "%Y-%m-%d")
-            if start <= d <= end:
-                filtered.append(e)
-
-    if not filtered:
-        print("No expenses found for the selected filter.")
-        return
-
-    print("\nID |Date    |Category  |Amount    |Description")
-    print("-" * 60)
-    for e in filtered:
-        print(f"{e['id']:2d} | {e['date']} | {e['category']:<10} | {e['amount']:8.2f} | {e['description']}")
-    print("-" * 60)
-    total = sum(e["amount"] for e in filtered)
-    print(f"Total for these expenses: {total:.2f}")
-
-
-
-def set_budget(data):
-    print("\n--- Set Budget ---")
-    print("1. Set overall monthly budget")
-    print("2. Set category-wise monthly budget")
-    choice = input("Enter your choice (1-2): ").strip()
-
-    budgets = data.get("budgets", {"overall": None, "categories": {}})
-
-    if choice == "1":
-        amount = input_float("Enter overall monthly budget amount: ")
-        budgets["overall"] = amount
-        print(f"Overall monthly budget set to {amount:.2f}")
-
-    elif choice == "2":
-        category = input("Enter category name: ").strip()
-        amount = input_float(f"Enter monthly budget for category '{category}': ")
-        budgets.setdefault("categories", {})
-        budgets["categories"][category] = amount
-        print(f"Budget for category '{category}' set to {amount:.2f}")
-
-    else:
-        print("Invalid choice. Returning to main menu.")
-        return
-
-    data["budgets"] = budgets
-    save_data(data)
-
-
-
-def view_budgets(data):
-    budgets = data.get("budgets", {"overall": None, "categories": {}})
-    print("\n--- Current Budgets ---")
-    overall = budgets.get("overall")
-    if overall is None:
-        print("Overall budget: Not set")
-    else:
-        print(f"Overall budget: {overall:.2f}")
-
-    categories = budgets.get("categories", {})
-    if not categories:
-        print("No category-wise budgets set.")
-    else:
-        print("Category-wise budgets:")
-        for cat, amt in categories.items():
-            print(f"  {cat}: {amt:.2f}")
-
+  
 
 
 def monthly_summary(data):
@@ -248,6 +127,129 @@ def monthly_summary(data):
                 print(f"'{cat}' category within budget. Remaining: {remaining:.2f}")
         else:
             print(f"No budget set for category '{cat}'.")
+
+
+
+def view_expenses(data):
+    expenses = data.get("expenses", [])
+    if not expenses:
+        print("\nNo expenses recorded yet.")
+        return
+
+    print("\n--- View Expenses ---")
+    print("1. View all expenses")
+    print("2. Filter by category")
+    print("3. Filter by date range")
+    choice = input("Enter your choice (1-3): ").strip()
+
+    filtered = expenses
+
+    if choice == "2":
+        category = input("Enter category to filter by: ").strip()
+        filtered = [e for e in expenses if e["category"].lower() == category.lower()]
+
+    elif choice == "3":
+        start_date = input_date("Enter start date (YYYY-MM-DD): ")
+        end_date = input_date("Enter end date (YYYY-MM-DD): ")
+        start = datetime.strptime(start_date, "%Y-%m-%d")
+        end = datetime.strptime(end_date, "%Y-%m-%d")
+        if end < start:
+            print("End date cannot be earlier than start date.")
+            return
+        filtered = []
+        for e in expenses:
+            d = datetime.strptime(e["date"], "%Y-%m-%d")
+            if start <= d <= end:
+                filtered.append(e)
+
+    if not filtered:
+        print("No expenses found for the selected filter.")
+        return
+
+    print("\nID |Date    |Category  |Amount    |Description")
+    print("-" * 60)
+    for e in filtered:
+        print(f"{e['id']:2d} | {e['date']} | {e['category']:<10} | {e['amount']:8.2f} | {e['description']}")
+    print("-" * 60)
+    total = sum(e["amount"] for e in filtered)
+    print(f"Total for these expenses: {total:.2f}")
+
+
+
+def add_exp(data):
+    print("\n--- Add New Expense ---")
+    date = input_date("Enter date (YYYY-MM-DD): ")
+    category = input("Enter category (e.g., Food, Travel, Shopping): ").strip()
+    description = input("Enter description: ").strip()
+    amount = input_float("Enter amount: ")
+
+    expenses = data.get("expenses", [])
+
+    if expenses:
+        new_id = max(expense.get("id", 0) for expense in expenses) + 1
+    else:
+        new_id = 1
+
+    expense = {
+        "id": new_id,
+        "date": date,
+        "category": category,
+        "description": description,
+        "amount": amount
+    }
+
+    expenses.append(expense)
+    data["expenses"] = expenses
+    save_data(data)
+    print("Expense added successfully!")
+
+
+
+def set_budget(data):
+    print("\n--- Set Budget ---")
+    print("1. Set overall monthly budget")
+    print("2. Set category-wise monthly budget")
+    choice = input("Enter your choice (1-2): ").strip()
+
+    budgets = data.get("budgets", {"overall": None, "categories": {}})
+
+    if choice == "1":
+        amount = input_float("Enter overall monthly budget amount: ")
+        budgets["overall"] = amount
+        print(f"Overall monthly budget set to {amount:.2f}")
+
+    elif choice == "2":
+        category = input("Enter category name: ").strip()
+        amount = input_float(f"Enter monthly budget for category '{category}': ")
+        budgets.setdefault("categories", {})
+        budgets["categories"][category] = amount
+        print(f"Budget for category '{category}' set to {amount:.2f}")
+
+    else:
+        print("Invalid choice. Returning to main menu.")
+        return
+
+    data["budgets"] = budgets
+    save_data(data)
+
+
+
+def view_budgets(data):
+    budgets = data.get("budgets", {"overall": None, "categories": {}})
+    print("\n--- Current Budgets ---")
+    overall = budgets.get("overall")
+    if overall is None:
+        print("Overall budget: Not set")
+    else:
+        print(f"Overall budget: {overall:.2f}")
+
+    categories = budgets.get("categories", {})
+    if not categories:
+        print("No category-wise budgets set.")
+    else:
+        print("Category-wise budgets:")
+        for cat, amt in categories.items():
+            print(f"  {cat}: {amt:.2f}")
 
 
 

@@ -1,0 +1,56 @@
+[
+  {
+    "amount": 40,
+    "category": "Education",
+    "date": "17-03-2026",
+    "description": "2 Channel files"
+  },
+  {
+    "amount":350,
+    "category": "Entertainment",
+    "date": "18-03-2026",
+    "description": "Dhurandhar the Revange"
+  },
+  {
+    "amount":110,
+    "category": "Travel",
+    "date": "21-03-2026",
+    "description": "College to Bhopal"
+  },
+  {
+    "amount":20,
+    "category": "Food",
+    "date": "21-03-2026",
+    "description": "Smooth"
+  },
+  {
+    "amount":300,
+    "category": "Travel",
+    "date": "21-03-2026",
+    "description": "Bhopal to College"
+  },
+  {
+    "amount":246,
+    "category": "Food",
+    "date": "21-03-2026",
+    "description": "McD"
+  },
+  {
+    "amount":235,
+    "category": "Shopping",
+    "date": "21-03-2026",
+    "description": "Mr. DIY"
+  },
+  {
+    "amount": 45.0,
+    "category": "Food",
+    "date": "27-03-2026",
+    "description": "Cold Coffee"
+  },
+  {
+    "amount": 40.0,
+    "category": "Food",
+    "date": "28-03-2026",
+    "description": "Fantastic"
+  }
+]

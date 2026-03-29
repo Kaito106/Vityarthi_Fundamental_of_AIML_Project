@@ -4,7 +4,9 @@ import os
 import json
 from datetime import datetime
 
+
 DATA_FILE="data.json"
+
 
 def load_data():
   if not os.path.exists(Data_file):
@@ -15,6 +17,7 @@ def load_data():
 try:
   with open(Data_file, "r") as f:
     data = json.load(f)
+
 
 
 except (json.JSONDecodeError, IOError):
@@ -103,6 +106,7 @@ def monthly_summary(data):
     for cat, amt in category_totals.items():
         print(f"  {cat}: {amt:.2f}")
 
+  
     budgets = data.get("budgets", {"overall": None, "categories": {}})
     overall_budget = budgets.get("overall")
     category_budgets = budgets.get("categories", {})
@@ -274,6 +278,7 @@ def main():
             break
         else:
             print("Invalid choice. Please enter a number between 1 and 6.")
+
 
 
 if __name__ == "__main__":

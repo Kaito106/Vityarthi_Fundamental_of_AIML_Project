@@ -8,9 +8,9 @@ A CLI-based personal expense tracking application built with Python. Stores data
 
 ```
 Vityarthi_Fundamental_of_AIML_Project/
-├── Project_Report.md # Project Report
-├── main.py           # Main application
-├── expenses.json     # Auto-generated data file
+├── Project_Report.md        # Project Report
+├── main.py                  # Main application
+├── expenses.json            # Auto-generated data file
 └── README.md
 ```
 

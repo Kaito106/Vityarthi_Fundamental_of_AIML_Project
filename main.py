@@ -3,54 +3,53 @@ import json
 import os
 from datetime import datetime
 
-DATA_FILE = "expenses.json"
+DATAFILE = "expenses.json"
 
-def load_expenses():
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r") as f:
+def loadexpenses():
+    if os.path.exists(DATAFILE):
+        with open(DATAFILE, "r") as f:
             return json.load(f)
     return []
 
-def save_expenses(expenses):
-    with open(DATA_FILE, "w") as f:
+def saveexpenses(expenses):
+    with open(DATAFILE, "w") as f:
         json.dump(expenses, f, indent=2)
 
-def validate_amount(amount_str):
+def validateamount(amount):
     try:
-        amount = float(amount_str)
-        if amount <= 0:
+        value = float(amount)
+        if value <= 0:
             raise ValueError
-        return amount
+        return value
     except ValueError:
         return None
 
-def validate_date(date_str):
+def validatedate(date):
     try:
-        datetime.strptime(date_str, "%d-%m-%Y")
-        return date_str
+        datetime.strptime(date, "%d-%m-%Y")
+        return date
     except ValueError:
         return None
 
-def validate_month(month_str):
+def validatemonth(month):
     try:
-        datetime.strptime(month_str, "%m-%Y")
-        return month_str
+        datetime.strptime(month, "%m-%Y")
+        return month
     except ValueError:
         return None
 
-def month_matches(expense_date, month_str):
-    # expense_date is DD-MM-YYYY, month_str is MM-YYYY
-    parts = expense_date.split("-")
-    return parts[1] == month_str[:2] and parts[2] == month_str[3:]
+def monthmatches(expensedate, monthstr):
+    parts = expensedate.split("-")
+    return parts[1] == monthstr[:2] and parts[2] == monthstr[3:]
 
 CATEGORIES = ["Food", "Travel", "Entertainment", "Health", "Shopping", "Education", "Other"]
 
-def add_expense(expenses):
+def addexpense(expenses):
     print("\n--- Add Expense ---")
 
     while True:
-        amount_str = input("Enter amount: ").strip()
-        amount = validate_amount(amount_str)
+        amountinput = input("Enter amount: ").strip()
+        amount = validateamount(amountinput)
         if amount is not None:
             break
         print("Invalid amount. Please enter a positive number.")
@@ -59,20 +58,20 @@ def add_expense(expenses):
     for i, cat in enumerate(CATEGORIES, 1):
         print(f"  {i}. {cat}")
     while True:
-        cat_input = input("Choose category (1-7) or type custom: ").strip()
-        if cat_input.isdigit() and 1 <= int(cat_input) <= len(CATEGORIES):
-            category = CATEGORIES[int(cat_input) - 1]
+        catinput = input("Choose category (1-7) or type custom: ").strip()
+        if catinput.isdigit() and 1 <= int(catinput) <= len(CATEGORIES):
+            category = CATEGORIES[int(catinput) - 1]
             break
-        elif cat_input:
-            category = cat_input.title()
+        elif catinput:
+            category = catinput.title()
             break
         print("Invalid category. Please try again.")
 
     while True:
-        date_str = input("Enter date (DD-MM-YYYY) or press Enter for today: ").strip()
-        if not date_str:
-            date_str = datetime.today().strftime("%d-%m-%Y")
-        date = validate_date(date_str)
+        dateinput = input("Enter date (DD-MM-YYYY) or press Enter for today: ").strip()
+        if not dateinput:
+            dateinput = datetime.today().strftime("%d-%m-%Y")
+        date = validatedate(dateinput)
         if date is not None:
             break
         print("Invalid date format. Use DD-MM-YYYY.")
@@ -82,14 +81,14 @@ def add_expense(expenses):
     expense = {
         "amount": amount,
         "category": category,
-        "date": date_str,
+        "date": dateinput,
         "description": description
     }
     expenses.append(expense)
-    save_expenses(expenses)
-    print(f"\nExpense added: {category} - ₹{amount:.2f} on {date_str}")
+    saveexpenses(expenses)
+    print(f"\nExpense added: {category} - ₹{amount:.2f} on {dateinput}")
 
-def view_expenses(expenses):
+def viewexpenses(expenses):
     print("\n--- All Expenses ---")
     if not expenses:
         print("No expenses recorded yet.")
@@ -103,7 +102,7 @@ def view_expenses(expenses):
     print("-" * 60)
     print(f"{'Total expenses:':<32} {len(expenses)} records")
 
-def total_spending(expenses):
+def totalspending(expenses):
     print("\n--- Total Spending ---")
     if not expenses:
         print("No expenses recorded yet.")
@@ -113,7 +112,7 @@ def total_spending(expenses):
     print(f"Number of transactions: {len(expenses)}")
     print(f"Average per transaction: ₹{total/len(expenses):.2f}")
 
-def category_summary(expenses):
+def categorysummary(expenses):
     print("\n--- Category-wise Summary ---")
     if not expenses:
         print("No expenses recorded yet.")
@@ -133,37 +132,36 @@ def category_summary(expenses):
     print("-" * 46)
     print(f"{'Total':<20} ₹{total:>10.2f} {'100.0%':>12}")
 
-def monthly_summary(expenses):
+def monthlysummary(expenses):
     print("\n--- Monthly Summary ---")
     if not expenses:
         print("No expenses recorded yet.")
         return
 
     while True:
-        month_str = input("Enter month (MM-YYYY): ").strip()
-        if validate_month(month_str):
+        monthinput = input("Enter month (MM-YYYY): ").strip()
+        if validatemonth(monthinput):
             break
         print("Invalid format. Use MM-YYYY.")
 
-    filtered = [exp for exp in expenses if month_matches(exp["date"], month_str)]
+    filtered = [exp for exp in expenses if monthmatches(exp["date"], monthinput)]
     if not filtered:
-        print(f"No expenses found for {month_str}.")
+        print(f"No expenses found for {monthinput}.")
         return
 
     total = sum(exp["amount"] for exp in filtered)
-    # Sort by day for chronological display
-    filtered_sorted = sorted(filtered, key=lambda x: x["date"].split("-")[0])
+    filteredsorted = sorted(filtered, key=lambda x: x["date"].split("-")[0])
 
-    print(f"\nExpenses for {month_str}:")
+    print(f"\nExpenses for {monthinput}:")
     print(f"{'Date':<12} {'Category':<15} {'Amount':>10} {'Description'}")
     print("-" * 55)
-    for exp in filtered_sorted:
+    for exp in filteredsorted:
         desc = exp.get("description", "")[:18]
         print(f"{exp['date']:<12} {exp['category']:<15} ₹{exp['amount']:>9.2f} {desc}")
     print("-" * 55)
-    print(f"Total for {month_str}: ₹{total:.2f} ({len(filtered)} transactions)")
+    print(f"Total for {monthinput}: ₹{total:.2f} ({len(filtered)} transactions)")
 
-def print_menu():
+def printmenu():
     print("\n" + "=" * 40)
     print("       EXPENSE TRACKER")
     print("=" * 40)
@@ -176,24 +174,24 @@ def print_menu():
     print("=" * 40)
 
 def main():
-    expenses = load_expenses()
+    expenses = loadexpenses()
     print("Welcome to Expense Tracker!")
     print(f"Loaded {len(expenses)} existing expense(s).")
 
     while True:
-        print_menu()
+        printmenu()
         choice = input("Enter your choice (1-6): ").strip()
 
         if choice == "1":
-            add_expense(expenses)
+            addexpense(expenses)
         elif choice == "2":
-            view_expenses(expenses)
+            viewexpenses(expenses)
         elif choice == "3":
-            total_spending(expenses)
+            totalspending(expenses)
         elif choice == "4":
-            category_summary(expenses)
+            categorysummary(expenses)
         elif choice == "5":
-            monthly_summary(expenses)
+            monthlysummary(expenses)
         elif choice == "6":
             print("\nGoodbye! Your expenses have been saved.")
             break
